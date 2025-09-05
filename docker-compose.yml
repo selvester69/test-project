@@ -1,0 +1,7 @@
+services:
+  user-service:
+    build: ./user-service
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./user-service/mock-user.csv:/app/mock-user.csv
