@@ -3,5 +3,21 @@ services:
     build: ./user-service
     ports:
       - "8080:8080"
-    volumes:
-      - ./user-service/mock-user.csv:/app/mock-user.csv
+    # depends_on:
+    #   - postgres
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5433/postgres
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+  # postgres:
+  #   image: postgres:13
+  #   ports:
+  #     - "5433:5432"
+  #   environment:
+  #     - POSTGRES_USER=root
+  #     - POSTGRES_PASSWORD=root
+  #     - POSTGRES_DB=user-db

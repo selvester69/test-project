@@ -7,3 +7,7 @@
 ## run docker compose
 
 - docker-compose -f user-service/docker-compose.yml up -d
+
+## check docker logs
+
+- docker logs test-project-user-service-1
