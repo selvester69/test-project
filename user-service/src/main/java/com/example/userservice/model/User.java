@@ -1,6 +1,13 @@
 package com.example.userservice.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "users")
 public class User {
+    @Id
     private String username;
     private String fname;
     private String lname;
@@ -60,12 +67,12 @@ public class User {
 
     @Override
     public String toString() {
-        return "User{" +
-                "username='" + username + '\'' +
-                ", fname='" + fname + '\'' +
-                ", lname='" + lname + '\'' +
-                ", address='" + address + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                '}';
+        return "User{"
+                + "username='" + username + "'\n" +
+                ", fname='" + fname + "'\n" +
+                ", lname='" + lname + "'\n" +
+                ", address='" + address + "'\n" +
+                ", phoneNumber='" + phoneNumber + "'"
+                + "}";
     }
 }

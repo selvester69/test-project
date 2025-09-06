@@ -1,1 +1,8 @@
-user-service/target/
+# Compiled output
+target/
+
+# IDE files
+.DS_Store
+
+# Compiled java classes
+# **/*.class
