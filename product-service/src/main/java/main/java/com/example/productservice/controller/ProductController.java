@@ -2,6 +2,13 @@ package main.java.main.java.com.example.productservice.controller;
 
 import main.java.main.java.com.example.productservice.model.Product;
 import main.java.main.java.com.example.productservice.service.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +22,7 @@ import jakarta.validation.Valid;
 import java.util.Optional;
 import java.util.Arrays;
 
+@Tag(name = "Product Management", description = "API for managing products with CRUD, search, filter, and pagination capabilities")
 @RestController
 @RequestMapping("/api/products")
 @Validated
@@ -23,14 +31,35 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+    @Operation(
+        summary = "Create a new product",
+        description = "Create a new product with all required fields. SKU must be unique and category must exist."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Product created successfully",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Product.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input, SKU already exists, or category not found",
+            content = @Content(mediaType = "application/json", schema = @Schema(type = "string"))),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PostMapping
     public ResponseEntity<Product> createProduct(@Valid @RequestBody Product product) {
         Product createdProduct = productService.createProduct(product);
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
     }
 
+    @Operation(
+        summary = "Get product by ID",
+        description = "Retrieve a single product by its unique identifier."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Product found",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Product.class))),
+        @ApiResponse(responseCode = "404", description = "Product not found")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+    public ResponseEntity<Product> getProductById(
+        @Parameter(description = "Product ID", example = "1") @PathVariable Long id) {
         Optional<Product> product = productService.getProductById(id);
         if (product.isPresent()) {
             return ResponseEntity.ok(product.get());
@@ -99,10 +128,18 @@ public class ProductController {
         }
     }
 
-    // Search endpoints
+    @Operation(
+        summary = "Search products",
+        description = "Search products across name, description, SKU, and tags with case-insensitive partial matching. Returns paginated results."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Search results retrieved",
+            content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/search")
     public ResponseEntity<Page<Product>> searchProducts(
-            @RequestParam(required = false) String q,
+            @Parameter(description = "Search query term", example = "laptop") @RequestParam(required = false) String q,
             @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
         Page<Product> products;
         if (q != null && !q.trim().isEmpty()) {
@@ -113,16 +150,25 @@ public class ProductController {
         return ResponseEntity.ok(products);
     }
 
+    @Operation(
+        summary = "Advanced search products",
+        description = "Perform advanced search with specific field matching for name, description, SKU, and multiple tags."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Advanced search results retrieved",
+            content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/advanced-search")
     public ResponseEntity<Page<Product>> advancedSearch(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String description,
-            @RequestParam(required = false) String sku,
-            @RequestParam(required = false) String tags,
+            @Parameter(description = "Product name to search", example = "MacBook") @RequestParam(required = false) String name,
+            @Parameter(description = "Product description to search", example = "Pro") @RequestParam(required = false) String description,
+            @Parameter(description = "Product SKU to search", example = "MBP2023") @RequestParam(required = false) String sku,
+            @Parameter(description = "Comma-separated tags to search", example = "laptop,apple") @RequestParam(required = false) String tags,
             @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
-
+ 
         String[] tagArray = tags != null && !tags.trim().isEmpty() ? tags.split(",") : new String[0];
-
+ 
         Page<Product> products = productService.advancedSearch(name, description, sku, tagArray, pageable);
         return ResponseEntity.ok(products);
     }
@@ -174,8 +220,21 @@ public class ProductController {
         return ResponseEntity.ok(products);
     }
 
+    @Operation(
+        summary = "Update product (full update)",
+        description = "Replace the entire product with new data. All fields are required."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Product updated successfully",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Product.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input or SKU conflict",
+            content = @Content(mediaType = "application/json", schema = @Schema(type = "string"))),
+        @ApiResponse(responseCode = "404", description = "Product not found")
+    })
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody Product productDetails) {
+    public ResponseEntity<Product> updateProduct(
+        @Parameter(description = "Product ID", example = "1") @PathVariable Long id,
+        @Valid @RequestBody Product productDetails) {
         try {
             Product updatedProduct = productService.updateProduct(id, productDetails);
             return ResponseEntity.ok(updatedProduct);

@@ -33,6 +33,8 @@ public class ProductServiceImpl implements ProductService {
     private FilterService filterService;
 
     @Override
+    @io.micrometer.core.annotation.Timed(value = "product.create", description = "Time taken to create a product")
+    @org.springframework.cache.annotation.CacheEvict(value = {"searchResults", "advancedSearchResults", "productCache"}, allEntries = true)
     public Product createProduct(@Valid Product product) {
         // Check SKU uniqueness
         if (productRepository.existsBySku(product.getSku())) {
@@ -173,10 +175,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @io.micrometer.core.annotation.Timed(value = "product.delete", description = "Time taken to delete a product")
+    @org.springframework.cache.annotation.CacheEvict(value = {"searchResults", "advancedSearchResults", "productCache"}, key = "'product_' + #id")
     public void deleteProduct(Long id) {
         Product existingProduct = productRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
-
+            .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
+        
         // Soft delete by setting status to DISCONTINUED
         existingProduct.setStatus(ProductStatus.DISCONTINUED);
         existingProduct.setUpdatedAt(java.time.LocalDateTime.now());
