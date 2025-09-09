@@ -1,0 +1,122 @@
+syntax = "proto3";
+
+package inventory;
+
+option java_package = "main.java.main.java.com.example.inventoryservice.grpc";
+option java_multiple_files = true;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+// Inventory Service Definition
+service InventoryService {
+  // Check stock availability for a product in specific warehouse
+  rpc CheckStockAvailability(StockCheckRequest) returns (StockCheckResponse);
+  
+  // Reserve stock for an order
+  rpc ReserveStock(ReserveStockRequest) returns (ReserveStockResponse);
+  
+  // Release reserved stock
+  rpc ReleaseStock(ReleaseStockRequest) returns (ReleaseStockResponse);
+  
+  // Get inventory details for product
+  rpc GetInventoryDetails(GetInventoryRequest) returns (GetInventoryResponse);
+  
+  // Update stock quantity (internal use)
+  rpc UpdateStockQuantity(StockUpdateRequest) returns (StockUpdateResponse);
+  
+  // Get low stock alerts
+  rpc GetLowStockAlerts(google.protobuf.Empty) returns (LowStockAlertsResponse);
+}
+
+// Messages
+message StockCheckRequest {
+  int64 product_id = 1;
+  int64 warehouse_id = 2;
+  int32 quantity_needed = 3;
+}
+
+message StockCheckResponse {
+  bool available = 1;
+  int32 available_quantity = 2;
+  string message = 3;
+  repeated string warehouses_with_stock = 4;
+}
+
+message ReserveStockRequest {
+  int64 product_id = 1;
+  int64 warehouse_id = 2;
+  int32 quantity = 3;
+  string order_id = 4;
+  google.protobuf.Timestamp reservation_expiry = 5;
+}
+
+message ReserveStockResponse {
+  bool success = 1;
+  string reservation_id = 2;
+  int32 reserved_quantity = 3;
+  string message = 4;
+  google.protobuf.Timestamp expiry_time = 5;
+}
+
+message ReleaseStockRequest {
+  string reservation_id = 1;
+  string order_id = 2;
+  int64 product_id = 3;
+  int64 warehouse_id = 4;
+}
+
+message ReleaseStockResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetInventoryRequest {
+  int64 product_id = 1;
+  repeated int64 warehouse_ids = 2;
+}
+
+message GetInventoryResponse {
+  message InventoryLocation {
+    int64 warehouse_id = 1;
+    int32 total_quantity = 2;
+    int32 reserved_quantity = 3;
+    int32 available_quantity = 4;
+    string status = 5;
+  }
+  repeated InventoryLocation locations = 1;
+  int32 total_available = 2;
+  string overall_status = 3;
+}
+
+message StockUpdateRequest {
+  int64 product_id = 1;
+  int64 warehouse_id = 2;
+  int32 new_quantity = 3;
+  string operation = 4; // "INCREASE", "DECREASE"
+  string source = 5; // "SYSTEM", "MANUAL", "ORDER"
+}
+
+message StockUpdateResponse {
+  bool success = 1;
+  int32 previous_quantity = 2;
+  int32 new_quantity = 3;
+  string message = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+message LowStockAlertsResponse {
+  message Alert {
+    int64 product_id = 1;
+    string product_name = 2;
+    int64 warehouse_id = 3;
+    string warehouse_name = 4;
+    int32 available_quantity = 5;
+    int32 threshold = 6;
+    google.protobuf.Timestamp timestamp = 7;
+    string severity = 8; // "WARNING", "CRITICAL"
+  }
+  repeated Alert alerts = 1;
+  int32 total_alerts = 2;
+  google.protobuf.Timestamp generated_at = 3;
+}
