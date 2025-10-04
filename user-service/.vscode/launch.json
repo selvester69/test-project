@@ -1,14 +1,14 @@
-{
-    "configurations": [
-        {
-            "type": "java",
-            "name": "Spring Boot-UserServiceApplication<user-service>",
-            "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "mainClass": "com.example.userservice.UserServiceApplication",
-            "projectName": "user-service",
-            "args": "",
-            "envFile": "${workspaceFolder}/.env"
-        }
-    ]
-}
+// {
+//     "configurations": [
+//         {
+//             "type": "java",
+//             "name": "Spring Boot-UserServiceApplication<user-service>",
+//             "request": "launch",
+//             "cwd": "${workspaceFolder}",
+//             "mainClass": "com.example.userservice.UserServiceApplication",
+//             "projectName": "user-service",
+//             "args": "",
+//             "envFile": "${workspaceFolder}/.env"
+//         }
+//     ]
+// }
